@@ -1,5 +1,5 @@
 import streamlit as st
-import pickle
+import joblib
 import os
 
 # --- Safe file paths ---
@@ -8,11 +8,13 @@ model_path = os.path.join(current_dir, "model.pkl")
 vectorizer_path = os.path.join(current_dir, "vectorizer.pkl")
 
 # --- Load model and vectorizer ---
-with open(model_path, "rb") as f:
-    model = pickle.load(f)
+@st.cache_resource
+def load_model_and_vectorizer():
+    model = joblib.load(model_path)
+    vectorizer = joblib.load(vectorizer_path)
+    return model, vectorizer
 
-with open(vectorizer_path, "rb") as f:
-    vectorizer = pickle.load(f)
+model, vectorizer = load_model_and_vectorizer()
 
 # --- Streamlit UI ---
 st.title("📩 Spam Message Detector")
