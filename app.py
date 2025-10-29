@@ -1,35 +1,35 @@
+import re
+import string
 import streamlit as st
 import joblib
 import os
 
-# --- Safe file paths ---
-current_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(current_dir, "model.pkl")
-vectorizer_path = os.path.join(current_dir, "vectorizer.pkl")
+# --- Preprocessing function ---
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(f"[{string.punctuation}]", "", text)
+    text = re.sub(r"\d+", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
 # --- Load model and vectorizer ---
 @st.cache_resource
 def load_model_and_vectorizer():
-    model = joblib.load(model_path)
-    vectorizer = joblib.load(vectorizer_path)
+    model = joblib.load("model.pkl")
+    vectorizer = joblib.load("vectorizer.pkl")
     return model, vectorizer
 
 model, vectorizer = load_model_and_vectorizer()
 
-# --- Streamlit UI ---
 st.title("📩 Spam Message Detector")
-st.write("Enter a message below and see if it's spam or not:")
+user_input = st.text_area("Enter your message:")
 
-# Text input
-user_input = st.text_area("✉️ Message", "")
-
-# Predict button
 if st.button("Predict"):
-    if user_input.strip() == "":
+    if not user_input.strip():
         st.warning("Please enter a message!")
     else:
-        # Transform and predict
-        transformed = vectorizer.transform([user_input])
+        cleaned = preprocess_text(user_input)
+        transformed = vectorizer.transform([cleaned])
         prediction = model.predict(transformed)[0]
 
         if prediction == 1:
